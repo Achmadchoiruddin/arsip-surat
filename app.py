@@ -416,12 +416,22 @@ def classify_document(text):
 
 def get_tesseract_config(options=""):
     tessdata_dir = app.config["TESSDATA_DIR"]
-    has_local_models = all(
-        os.path.isfile(os.path.join(tessdata_dir, f"{language}.traineddata"))
-        for language in ("eng", "ind")
-    )
-    if has_local_models:
-        return f'{options} --tessdata-dir "{tessdata_dir}"'.strip()
+    # Check multiple possible locations for traineddata files
+    possible_dirs = [
+        tessdata_dir,
+        "/usr/share/tesseract-ocr/5/tessdata",
+        "/usr/share/tesseract-ocr/tessdata",
+        "/usr/share/tesseract/5/tessdata",
+        "/usr/share/tesseract/tessdata",
+    ]
+    for candidate in possible_dirs:
+        if os.path.isdir(candidate):
+            has_eng = os.path.isfile(os.path.join(candidate, "eng.traineddata"))
+            has_ind = os.path.isfile(os.path.join(candidate, "ind.traineddata"))
+            if has_eng and has_ind:
+                return f'{options} --tessdata-dir "{candidate}"'.strip()
+            elif has_eng or has_ind:
+                return f'{options} --tessdata-dir "{candidate}"'.strip()
     return options
 
 

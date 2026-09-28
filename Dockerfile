@@ -3,7 +3,6 @@ FROM python:3.11-slim
 # Install Tesseract OCR engine and required packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr \
-    tesseract-ocr-ind \
     tesseract-ocr-eng \
     poppler-utils \
     && rm -rf /var/lib/apt/lists/*
@@ -12,8 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set Tesseract path
-ENV TESSDATA_DIR=/tessdata
+# Set Tesseract data directory (default location)
+ENV TESSDATA_DIR=/usr/share/tesseract-ocr/5/tessdata
 
 # Create app directory
 WORKDIR /app
@@ -26,11 +25,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p uploads tessdata static templates
+RUN mkdir -p uploads static templates
 
-# Copy traineddata files if they exist
-COPY tessdata/ind.traineddata tessdata/ 2>/dev/null || true
-COPY tessdata/eng.traineddata tessdata/ 2>/dev/null || true
+# Copy traineddata files to Tesseract tessdata directory
+COPY tessdata/eng.traineddata /usr/share/tesseract-ocr/5/tessdata/eng.traineddata
+COPY tessdata/ind.traineddata /usr/share/tesseract-ocr/5/tessdata/ind.traineddata
 
 # Expose port
 EXPOSE 8080
