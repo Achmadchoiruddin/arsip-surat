@@ -10,8 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-
-# Set Tesseract data directory (default location)
 ENV TESSDATA_DIR=/usr/share/tesseract-ocr/5/tessdata
 
 # Create app directory
@@ -31,11 +29,8 @@ RUN mkdir -p uploads static templates
 COPY tessdata/eng.traineddata /usr/share/tesseract-ocr/5/tessdata/eng.traineddata
 COPY tessdata/ind.traineddata /usr/share/tesseract-ocr/5/tessdata/ind.traineddata
 
-# Make entrypoint script executable
-RUN chmod +x /app/entrypoint.sh
-
 # Expose port
 EXPOSE 8080
 
-# Run entrypoint script
-CMD ["/app/entrypoint.sh"]
+# Run gunicorn with default port 8080
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "120", "app:app"]
