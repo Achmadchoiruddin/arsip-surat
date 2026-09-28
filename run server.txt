@@ -1,0 +1,4 @@
+jalankan server di jaringan lokal Set-Location "D:\Perancangan dan Implementasi Sistem Arsip Surat Digital Berbasis Web dengan OCR dan Klasifikasi Otomatis Dokumen pada Kantor Desa"
+$env:FLASK_HOST = "0.0.0.0"
+$env:FLASK_DEBUG = "0"
+& "C:\Users\SDN Beberan 2\AppData\Local\Programs\Python\Python312\python.exe" app.py

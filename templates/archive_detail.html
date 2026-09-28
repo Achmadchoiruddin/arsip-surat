@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4">
+    <h4>Detail Arsip</h4>
+    <dl class="row mt-3">
+        <dt class="col-sm-3">Nomor surat</dt>
+        <dd class="col-sm-9">{{ record['nomor_surat'] or '-' }}</dd>
+        <dt class="col-sm-3">Tanggal</dt>
+        <dd class="col-sm-9">{{ record['tanggal'] or '-' }}</dd>
+        <dt class="col-sm-3">Perihal</dt>
+        <dd class="col-sm-9">{{ record['perihal'] or '-' }}</dd>
+        <dt class="col-sm-3">Pengirim</dt>
+        <dd class="col-sm-9">{{ record['pengirim'] or '-' }}</dd>
+        <dt class="col-sm-3">Tujuan</dt>
+        <dd class="col-sm-9">{{ record['tujuan'] or '-' }}</dd>
+        <dt class="col-sm-3">Kategori</dt>
+        <dd class="col-sm-9">{{ record['kategori'] or '-' }}</dd>
+        <dt class="col-sm-3">Nama file</dt>
+        <dd class="col-sm-9">{{ record['file_name'] or '-' }}</dd>
+    </dl>
+    <hr>
+    <h5>Hasil OCR</h5>
+    <pre class="bg-light p-3 rounded text-wrap" style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ record['extracted_text'] or 'Tidak ada teks hasil OCR.' }}</pre>
+    <div class="mt-3 d-flex gap-2">
+        <a class="btn btn-primary" href="{{ url_for('download_document', archive_id=record['id']) }}">Download Dokumen</a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('archive_edit', archive_id=record['id']) }}">Koreksi Data</a>
+        <form method="POST" action="{{ url_for('archive_rerun_ocr', archive_id=record['id']) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline-primary" type="submit">OCR Ulang</button>
+        </form>
+        <form method="POST" action="{{ url_for('archive_delete', archive_id=record['id']) }}" onsubmit="return confirm('Hapus arsip ini? Dokumen yang tidak digunakan arsip lain juga akan dihapus.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-danger" type="submit">Hapus Arsip</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

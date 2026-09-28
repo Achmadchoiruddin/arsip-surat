@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4 p-md-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <div class="text-uppercase small" style="letter-spacing:0.12em; color: var(--jade-ink); font-weight:600;">Dokumen</div>
+            <h4 class="mb-0 mt-1" style="font-weight:700;">Upload Surat</h4>
+        </div>
+        <span class="badge-soft">PDF / JPG / PNG</span>
+    </div>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Dokumen</label>
+            <input type="file" class="form-control" name="document" accept=".pdf,.png,.jpg,.jpeg" required>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6"><input class="form-control" name="nomor_surat" placeholder="Nomor surat"></div>
+            <div class="col-md-6"><input class="form-control" name="tanggal" placeholder="Tanggal (contoh: 25 September 2026)"></div>
+            <div class="col-md-6"><input class="form-control" name="perihal" placeholder="Perihal"></div>
+            <div class="col-md-6"><input class="form-control" name="pengirim" placeholder="Pengirim"></div>
+            <div class="col-md-12"><input class="form-control" name="tujuan" placeholder="Tujuan"></div>
+        </div>
+        <button class="btn btn-primary mt-4" type="submit">Upload & Proses</button>
+    </form>
+</div>
+{% endblock %}

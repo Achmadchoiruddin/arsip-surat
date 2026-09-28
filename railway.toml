@@ -1,0 +1,7 @@
+[build]
+builder = "NIXPACKS"
+[deploy]
+healthCheckPath = "/"
+healthCheckTimeoutSeconds = 10
+replicasMin = 1
+replicasMax = 1

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h4 class="mb-1">Tempat Sampah</h4>
+            <p class="text-muted mb-0">Arsip di sini dapat dipulihkan atau dihapus permanen.</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="{{ url_for('archives') }}">Kembali ke Arsip</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Nomor</th>
+                    <th>Perihal</th>
+                    <th>Kategori</th>
+                    <th>Tanggal Surat</th>
+                    <th>Dihapus pada</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record['nomor_surat'] or '-' }}</td>
+                    <td>{{ record['perihal'] or record['file_name'] or '-' }}</td>
+                    <td>{{ record['kategori'] or '-' }}</td>
+                    <td>{{ record['tanggal'] or '-' }}</td>
+                    <td>{{ record['deleted_at'] }}</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <form method="POST" action="{{ url_for('restore_archive', archive_id=record['id']) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-outline-primary" type="submit">Pulihkan</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('purge_archive', archive_id=record['id']) }}" onsubmit="return confirm('Hapus arsip dan file dokumennya secara permanen? Tindakan ini tidak dapat dibatalkan.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-sm btn-danger" type="submit">Hapus Permanen</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted">Tempat sampah kosong.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

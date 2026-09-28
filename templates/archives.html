@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+        <h4>Daftar Arsip</h4>
+    </div>
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
+        <form class="row g-2 align-items-end flex-grow-1" method="GET">
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label small" for="archive-search">Kata kunci</label>
+                <input id="archive-search" class="form-control" name="q" value="{{ query }}" placeholder="Nomor, perihal, pengirim...">
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label small" for="archive-category">Kategori</label>
+                <select id="archive-category" class="form-select" name="category">
+                    <option value="">Semua kategori</option>
+                    {% for item in categories %}
+                    <option value="{{ item['kategori'] }}" {% if selected_category == item['kategori'] %}selected{% endif %}>{{ item['kategori'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label small" for="archive-start-date">Dari tanggal</label>
+                <input id="archive-start-date" class="form-control" type="date" name="start_date" value="{{ start_date }}">
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label small" for="archive-end-date">Sampai tanggal</label>
+                <input id="archive-end-date" class="form-control" type="date" name="end_date" value="{{ end_date }}">
+            </div>
+            <div class="col-lg-1 col-md-6 d-flex gap-2">
+                <button class="btn btn-outline-primary" type="submit">Cari</button>
+                <a class="btn btn-outline-secondary" href="{{ url_for('archives') }}" title="Hapus filter" aria-label="Hapus filter">Reset</a>
+            </div>
+        </form>
+        {% if current_user == 'admin' %}
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{{ url_for('archive_trash') }}">Tempat Sampah</a>
+            <form method="POST" action="{{ url_for('archives_reset') }}" onsubmit="return prompt('Pindahkan semua arsip aktif ke tempat sampah? Ketik PINDAHKAN SEMUA:') === 'PINDAHKAN SEMUA';">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-danger" type="submit">Kosongkan Daftar Aktif</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Nomor</th>
+                <th>Perihal</th>
+                <th>Kategori</th>
+                <th>Tanggal</th>
+                <th>Pengirim</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td>{{ record['nomor_surat'] or '-' }}</td>
+                <td>{{ record['perihal'] or '-' }}</td>
+                <td>{{ record['kategori'] or '-' }}</td>
+                <td>{{ record['tanggal'] or '-' }}</td>
+                <td>{{ record['pengirim'] or '-' }}</td>
+                <td class="d-flex gap-2">
+                    <a href="{{ url_for('archive_detail', archive_id=record['id']) }}" class="btn btn-sm btn-secondary">Detail</a>
+                    <form method="POST" action="{{ url_for('archive_delete', archive_id=record['id']) }}" onsubmit="return confirm('Hapus arsip ini? Dokumen yang tidak digunakan arsip lain juga akan dihapus.');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-sm btn-danger" type="submit">Hapus</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center">Belum ada arsip.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

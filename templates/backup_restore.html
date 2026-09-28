@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4">
+    <h4 class="mb-3">Restore Backup</h4>
+    <p class="text-muted">Unggah file ZIP hasil backup untuk memulihkan basis data arsip dan file dokumen yang disertakan.</p>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="mb-3">
+            <label for="backup_file" class="form-label">Pilih file ZIP backup</label>
+            <input id="backup_file" class="form-control" type="file" name="backup_file" accept=".zip" required>
+        </div>
+        <button class="btn btn-primary" type="submit">Restore Backup</button>
+    </form>
+</div>
+{% endblock %}

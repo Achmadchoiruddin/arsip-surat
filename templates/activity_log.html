@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Riwayat Aktivitas</h4>
+        <span class="text-muted small">Maksimal 500 aktivitas terbaru</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Waktu</th>
+                    <th>Pengguna</th>
+                    <th>Aktivitas</th>
+                    <th>Detail</th>
+                    <th>ID Arsip</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log['created_at'] }}</td>
+                    <td>{{ log['username'] }}</td>
+                    <td>{{ log['action'] }}</td>
+                    <td>{{ log['details'] or '-' }}</td>
+                    <td>{{ log['archive_id'] or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center">Belum ada aktivitas tercatat.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

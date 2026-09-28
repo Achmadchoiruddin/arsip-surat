@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4 mb-4">
+    <h4 class="mb-3">Tambah Pengguna</h4>
+    <form method="POST" action="{{ url_for('manage_users') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label" for="new_username">Username</label>
+                <input class="form-control" id="new_username" name="username" minlength="3" maxlength="50" pattern="[A-Za-z0-9_.-]+" autocomplete="username" required>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label" for="new_user_password">Password awal</label>
+                <div class="input-group">
+                    <input class="form-control" id="new_user_password" type="password" name="password" minlength="12" autocomplete="new-password" required>
+                    <button class="btn btn-outline-secondary" type="button" aria-label="Tampilkan password" title="Tampilkan password" onclick="togglePasswordVisibility('new_user_password', this)">
+                        <svg class="password-eye" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="password-eye-off" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3 3.8"/><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <label class="form-label" for="new_user_role">Peran</label>
+                <select class="form-select" id="new_user_role" name="role">
+                    <option value="petugas">Petugas</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <button class="btn btn-primary" type="submit">Buat Akun</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card p-4">
+    <h4 class="mb-3">Daftar Pengguna</h4>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Dibuat</th>
+                    <th>Peran dan Status</th>
+                    <th>Reset Password</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td class="fw-semibold">{{ user['username'] }}</td>
+                    <td>{{ user['created_at'] }}</td>
+                    <td>
+                        <form class="d-flex gap-2" method="POST" action="{{ url_for('update_user', username=user['username']) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <select class="form-select" name="role" aria-label="Peran untuk {{ user['username'] }}">
+                                <option value="petugas" {% if user['role'] == 'petugas' %}selected{% endif %}>Petugas</option>
+                                <option value="admin" {% if user['role'] == 'admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                            <select class="form-select" name="is_active" aria-label="Status untuk {{ user['username'] }}">
+                                <option value="1" {% if user['is_active'] %}selected{% endif %}>Aktif</option>
+                                <option value="0" {% if not user['is_active'] %}selected{% endif %}>Nonaktif</option>
+                            </select>
+                            <button class="btn btn-outline-primary" type="submit">Simpan</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form class="d-flex gap-2" method="POST" action="{{ url_for('reset_user_password', username=user['username']) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input class="form-control" type="password" name="password" minlength="12" placeholder="Password baru" aria-label="Password baru untuk {{ user['username'] }}" required>
+                            <button class="btn btn-outline-secondary" type="submit">Reset</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center">Belum ada pengguna.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

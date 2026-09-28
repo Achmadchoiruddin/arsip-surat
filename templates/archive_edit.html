@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4">
+    <h4>Koreksi Data Arsip</h4>
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Nomor surat</label>
+                <input class="form-control" name="nomor_surat" value="{{ record['nomor_surat'] or '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Tanggal</label>
+                <input class="form-control" name="tanggal" value="{{ record['tanggal'] or '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Perihal</label>
+                <input class="form-control" name="perihal" value="{{ record['perihal'] or '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Pengirim</label>
+                <input class="form-control" name="pengirim" value="{{ record['pengirim'] or '' }}">
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Tujuan</label>
+                <input class="form-control" name="tujuan" value="{{ record['tujuan'] or '' }}">
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Kategori</label>
+                <input class="form-control" name="kategori" value="{{ record['kategori'] or '' }}">
+            </div>
+            <div class="col-md-12">
+                <label class="form-label">Hasil OCR</label>
+                <textarea class="form-control" name="extracted_text" rows="8">{{ record['extracted_text'] or '' }}</textarea>
+            </div>
+        </div>
+        <button class="btn btn-primary mt-3" type="submit">Simpan Koreksi</button>
+    </form>
+</div>
+{% endblock %}

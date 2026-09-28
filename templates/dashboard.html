@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-6 col-md-4">
+        <div class="stat-card">
+            <h6>Total Arsip</h6>
+            <h2>{{ total }}</h2>
+            <span class="delta">Semua arsip aktif</span>
+        </div>
+    </div>
+    {% for item in categories %}
+    <div class="col-6 col-md-4">
+        <div class="stat-card">
+            <h6>{{ item['kategori'] }}</h6>
+            <h2>{{ item['total'] }}</h2>
+            <span class="delta">Kategori terdata</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card p-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h5 class="mb-0" style="font-weight:700;">Arsip Terbaru</h5>
+        <span class="badge-soft">Update terakhir</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Nomor</th>
+                    <th>Perihal</th>
+                    <th>Kategori</th>
+                    <th>Tanggal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in recent %}
+                <tr>
+                    <td>{{ record['nomor_surat'] or '-' }}</td>
+                    <td>{{ record['perihal'] or '-' }}</td>
+                    <td>{{ record['kategori'] or '-' }}</td>
+                    <td>{{ record['tanggal'] or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
