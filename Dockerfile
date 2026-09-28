@@ -31,8 +31,11 @@ RUN mkdir -p uploads static templates
 COPY tessdata/eng.traineddata /usr/share/tesseract-ocr/5/tessdata/eng.traineddata
 COPY tessdata/ind.traineddata /usr/share/tesseract-ocr/5/tessdata/ind.traineddata
 
+# Make entrypoint script executable
+RUN chmod +x /app/entrypoint.sh
+
 # Expose port
 EXPOSE 8080
 
-# Run gunicorn with proper PORT handling using shell
-CMD ["sh", "-c", "exec gunicorn --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 120 app:app"]
+# Run entrypoint script
+CMD ["/app/entrypoint.sh"]
