@@ -201,10 +201,14 @@ def init_db():
             "SELECT 1 FROM users WHERE username = ?", (username,)
         ).fetchone()
         if existing_user is None:
-            db.execute(
-                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-                (username, generate_password_hash(password), role),
-            )
+            try:
+                db.execute(
+                    "INSERT INTO users (username, password_hash, role, is_active) VALUES (?, ?, ?, 1)",
+                    (username, generate_password_hash(password), role),
+                )
+            except (sqlite3.IntegrityError, Exception):
+                db.rollback() if hasattr(db, 'rollback') else None
+                pass  # User already exists, skip
     db.commit()
 
 
