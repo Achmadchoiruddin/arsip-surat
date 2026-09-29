@@ -30,6 +30,10 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 csrf = CSRFProtect(app)
 
+# API Configuration
+API_KEY = os.environ.get("API_KEY", "arsip-desa-api-key-2026")
+API_ENABLED = os.environ.get("API_ENABLED", "1").lower() in ("1", "true", "yes")
+
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 CATEGORY_KEYWORDS = {
@@ -1264,6 +1268,165 @@ def download_document(archive_id):
 @app.context_processor
 def inject_user():
     return {"current_user": session.get("user"), "current_role": session.get("role")}
+
+
+# ==================== API ENDPOINTS ====================
+# API endpoints for external website integration (e.g., website pembuat surat desa)
+
+def require_api_key(f):
+    """Decorator for API key authentication"""
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not API_ENABLED:
+            return {"error": "API disabled"}, 503
+        api_key = request.headers.get("X-API-Key") or request.args.get("api_key")
+        if not api_key or not secrets.compare_digest(str(api_key), str(API_KEY)):
+            return {"error": "Unauthorized: Invalid API key"}, 401
+        return f(*args, **kwargs)
+    return decorated
+
+
+@app.route("/api/archives", methods=["POST"])
+@csrf.exempt
+@require_api_key
+def api_create_archive():
+    """Create archive from external website (e.g., website pembuat surat desa)"""
+    import json
+    
+    data = request.get_json(silent=True)
+    if not data:
+        return {"error": "Invalid JSON data"}, 400
+    
+    # Validate required fields
+    required = ["nomor_surat", "perihal"]
+    for field in required:
+        if not data.get(field):
+            return {"error": f"Field '{field}' is required"}, 400
+    
+    db = get_db()
+    cursor = db.execute(
+        """INSERT INTO archives 
+           (nomor_surat, tanggal, perihal, pengirim, tujuan, kategori, file_name, file_path, extracted_text) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (
+            data.get("nomor_surat", ""),
+            data.get("date", "") or data.get("date", ""),
+            data.get("perihal", ""),
+            data.get("pengirim", "") or data.get("dari", ""),
+            data.get("tujuan", "") or data.get("kepada", ""),
+            data.get("kategori", "Surat Administrasi Lainnya"),
+            data.get("file_name", ""),
+            data.get("file_path", ""),
+            data.get("extracted_text", ""),
+        ),
+    )
+    db.commit()
+    log_activity(db, "api_upload", f"API upload: {data.get('nomor_surat')}", cursor.lastrowid)
+    
+    return {
+        "success": True,
+        "id": cursor.lastrowid,
+        "message": "Archive created successfully"
+    }, 201
+
+
+@app.route("/api/archives", methods=["GET"])
+@require_api_key
+def api_list_archives():
+    """List archives via API"""
+    query = request.args.get("q", "")
+    category = request.args.get("category", "")
+    date_filters = get_date_filters()
+    db = get_db()
+    where_clause, params = archive_filter_query(
+        query, category, date_filters["start_date"], date_filters["end_date"]
+    )
+    rows = db.execute(
+        f"SELECT * FROM archives {where_clause} ORDER BY created_at DESC, id DESC", params
+    ).fetchall()
+    
+    archives = []
+    for row in rows:
+        archives.append({
+            "id": row["id"],
+            "nomor_surat": row["nomor_surat"],
+            "tanggal": row["dates"],
+            "perihal": row["perihal"],
+            "pengirim": row["pengirim"],
+            "tujuan": row["tujuan"],
+            "kategori": row["kategori"],
+            "file_name": row["file_name"],
+            "created_at": row["created_at"],
+        })
+    
+    return {"success": True, "data": archives, "count": len(archives)}
+
+
+@app.route("/api/archives/<int:archive_id>", methods=["GET"])
+@require_api_key
+def api_get_archive(archive_id):
+    """Get single archive by ID"""
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM archives WHERE id = ? AND deleted_at IS NULL", (archive_id,)
+    ).fetchone()
+    if row is None:
+        return {"error": "Archive not found"}, 404
+    
+    return {
+        "success": True,
+        "data": {
+            "id": row["id"],
+"nomor_surat": row["nomor_surat"],
+            "date": row["date"],
+            "perihal": row["perihal"],
+            "pengirim": row["pengirim"],
+            "tujuan": row["tujuan"],
+            "kategori": row["kategori"],
+            "file_name": row["file_name"],
+            "extracted_text": row["extracted_text"],
+            "created_at": row["created_at"],
+        }
+    }
+
+
+@app.route("/api/archives/<int:archive_id>", methods=["DELETE"])
+@csrf.exempt
+@require_api_key
+def api_delete_archive(archive_id):
+    """Delete archive (soft delete to trash)"""
+    db = get_db()
+    row = db.execute(
+        "SELECT file_path, file_name, nomor_surat FROM archives WHERE id = ? AND deleted_at IS NULL",
+        (archive_id,),
+    ).fetchone()
+    if row is None:
+        return {"error": "Archive not found"}, 404
+    
+    db.execute(
+        "UPDATE archives SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?", (archive_id,)
+    )
+    log_activity(
+        db,
+        "api_delete",
+        f"API delete: {row['nomor_surat'] or row['file_name'] or archive_id}",
+        archive_id,
+    )
+    db.commit()
+    
+    return {"success": True, "message": "Archive moved to trash"}
+
+
+@app.route("/api/health", methods=["GET"])
+def api_health():
+    """Health check endpoint (no auth required)"""
+    return {
+        "status": "ok",
+        "service": "Sistem Arsip Surat Digital",
+        "version": "1.0.0",
+        "api_enabled": API_ENABLED,
+    }
 
 
 if __name__ == "__main__":
